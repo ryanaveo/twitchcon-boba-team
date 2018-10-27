@@ -38,6 +38,7 @@ const userCooldownMs = 1000;                // maximum input rate per user to pr
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
 const channelCooldownMs = 1000;             // maximum broadcast rate per channel
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
+
 const colorWheelRotation = 30;
 const channelColors = {};
 const channelCooldowns = {};                // rate limit compliance
