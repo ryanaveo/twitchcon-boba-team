@@ -22,6 +22,9 @@ const color = require('color');
 const ext = require('commander');
 const jwt = require('jsonwebtoken');
 const request = require('request');
+const mongoose = require("mongoose");
+const DBurl = "mongodb://" + config.get("Database.user") + ":" + config.get("Database.password") + "@ds143683.mlab.com:43683/twitchcon";
+mongoose.connect("mongodb://boba:twitchcon2018@ds143683.mlab.com:43683/twitchcon");
 
 // The developer rig uses self-signed certificates.  Node doesn't accept them
 // by default.  Do not use this in production.
