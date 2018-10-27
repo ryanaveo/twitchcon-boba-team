@@ -1,0 +1,7 @@
+{
+  "name": "Boba-back",
+  "version": "1.0.0",
+  "description": "BobaStory backend",
+  "main": "index.js",
+  "license": "MIT"
+}
