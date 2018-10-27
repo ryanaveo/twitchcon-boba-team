@@ -2,7 +2,7 @@
   "name": "Boba-back",
   "version": "1.0.0",
   "description": "BobaStory backend",
-  "main": "index.js",
+  "main": "backend.js",
   "license": "MIT",
   "dependencies": {
     "config": "^2.0.1",
