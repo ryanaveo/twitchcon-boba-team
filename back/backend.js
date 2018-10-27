@@ -68,6 +68,7 @@ const STRINGS = {
   cyclingColor: 'Cycling color for c:%s on behalf of u:%s',
   colorBroadcast: 'Broadcasting color %s for c:%s',
   sendColor: 'Sending color %s to c:%s',
+  sendUserInfo: 'Sending {exp: %d, level: %d} to c:%s',
   cooldown: 'Please wait before clicking again',
   invalidAuthHeader: 'Invalid authorization header',
   invalidJwt: 'Invalid JWT',
@@ -87,7 +88,7 @@ let clientId;
 if (ext.isLocal && ext.args.length) {
   const localFileLocation = path.resolve(ext.args[0]);
   clientId = require(localFileLocation).id;
-}
+
 clientId = getOption('clientId', 'ENV_CLIENT_ID', clientId);
 // Get options from the command line, environment, or, if local mode is
 // enabled, the local value.
@@ -164,15 +165,23 @@ function colorCycleHandler(req) {
   return currentColor;
 }
 
-function colorQueryHandler(req) {
-  // Verify all requests.
+function userQueryHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
-
-  // Get the color for the channel from the payload and return it.
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-  const currentColor = color(channelColors[channelId] || initialColor).hex();
-  verboseLog(STRINGS.sendColor, currentColor, opaqueUserId);
-  return currentColor;
+
+  const userExp = getExpFromDatabase(opaqueUserId);
+  const userLevel = getLevelFromDatabase(opaqueUserId);
+
+  verboseLog(STRINGS.sendUserInfo, userExp, userLevel, opaqueUserId);
+  return {userExp, userLevel};
+}
+
+function sendExpUpdateBroadcast(channelId) {
+  const headers = {
+    'Client-ID': clientId,
+    'Content-Type': 'application/json',
+    'Authorization': bearerPrefix + makeServerToken(channelId),
+  };
 }
 
 function attemptColorBroadcast(channelId) {
@@ -259,11 +268,11 @@ function userIsInCooldown(opaqueUserId) {
     handler: colorCycleHandler,
   });
 
-  // Handle a new viewer requesting the color.
+  // Handle a viewer requesting their user info
   server.route({
     method: 'GET',
-    path: '/color/query',
-    handler: colorQueryHandler,
+    path: '/user/query',
+    handler: userQueryHandler,
   });
 
   // Start the server.
