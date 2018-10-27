@@ -47,6 +47,8 @@ const channelColors = {};
 const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
+let last_updated = Date.now()
+
 function missingOnline(name, variable) {
   const option = name.charAt(0);
   return `Extension ${name} required in online mode.\nUse argument "-${option} <${name}>" or environment variable "${variable}".`;
@@ -139,6 +141,7 @@ function verifyAndDecode(header) {
   throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
+/*
 function colorCycleHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
@@ -164,6 +167,7 @@ function colorCycleHandler(req) {
 
   return currentColor;
 }
+*/
 
 function userQueryHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
@@ -176,13 +180,21 @@ function userQueryHandler(req) {
   return {userExp, userLevel};
 }
 
-function sendExpUpdateBroadcast(channelId) {
-  const headers = {
-    'Client-ID': clientId,
-    'Content-Type': 'application/json',
-    'Authorization': bearerPrefix + makeServerToken(channelId),
-  };
+function hypeStartQueryHandler(req) {
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(hypeTrainOn) {
+      return;
+  }
+  hypeTrainOn = true
+
+  // set the desired emote/phrase
+  // start tracking who sends the desired emote/phrase and how often
+  // increase the exp of people as needed
+  // broadcast results at repeated intervals to frontend to display a literal hype train
 }
+
 
 function attemptColorBroadcast(channelId) {
   // Check the cool-down to determine if it's okay to send now.
@@ -266,6 +278,13 @@ function userIsInCooldown(opaqueUserId) {
     method: 'POST',
     path: '/color/cycle',
     handler: colorCycleHandler,
+  });
+
+  // Handle a broadcaster requesting to start a hype train
+  server.route({
+    method: 'GET',
+    path: '/hype/start',
+    handler: hypeStartQueryHandler,
   });
 
   // Handle a viewer requesting their user info
