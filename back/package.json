@@ -3,5 +3,10 @@
   "version": "1.0.0",
   "description": "BobaStory backend",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "mongoose": "^5.3.7",
+    "node": "^11.0.0"
+  }
 }
