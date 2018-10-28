@@ -2,10 +2,22 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
-.App-light{
-    color:#232127;
+.App-light {
+    color: #232127;
 }
 
-.App-dark{
-    color:#e5e3e8;
+.App-dark {
+    color: #e5e3e8;
+}
+
+.header {
+    background-color: rgba(255, 204, 204, 0.3);
+    min-height: 10vh;
+    max-height: 20vh;
+}
+
+.footer {
+    background-color: rgba(204, 255, 204, 0.3);
+    min-height: 10vh;
+    max-height: 20vh;
 }
