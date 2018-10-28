@@ -96,7 +96,7 @@ function sendTrainBroadcast(req, reply) {
       console.log("hello");
       return "OK";
     }
-  });
+  })
 
   // Handle a viewer requesting their user info
   server.route({
