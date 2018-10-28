@@ -3,6 +3,8 @@ import Authentication from "../../util/Authentication/Authentication";
 
 import "./App.css";
 
+const IMG_PATH = "img/monkaS.png";
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -106,7 +108,8 @@ export default class App extends React.Component {
   lengthenTrain() {
     this.setState(state => {
       return {
-        hypeTrainLength: state.hypeTrainLength + 1
+        hypeTrainLength:
+          state.hypeTrainLength < 20 ? state.hypeTrainLength + 1 : 20
       };
     });
   }
@@ -118,32 +121,41 @@ export default class App extends React.Component {
           <div
             className={this.state.theme === "light" ? "App-light" : "App-dark"}
           >
-            <p>Hello world!</p>
-            <p>My token is: {this.Authentication.state.token}</p>
-            <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
-            <div>
-              {this.Authentication.isModerator() ? (
-                <p>
-                  I am currently a mod, and here's a special mod button{" "}
-                  <input value="mod button" type="button" />
-                </p>
-              ) : (
-                "I am currently not a mod."
-              )}
+            <div className="header" />
+            <div className="main">
+              <p>My token is: {this.Authentication.state.token}</p>
+              <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
+              <div>
+                {this.Authentication.isModerator() ? (
+                  <p>
+                    I am currently a mod, and here's a special mod button{" "}
+                    <input value="mod button" type="button" />
+                  </p>
+                ) : (
+                  "I am currently not a mod."
+                )}
+              </div>
+              <p>
+                I have{" "}
+                {this.Authentication.hasSharedId()
+                  ? `shared my ID, and my user_id is ${this.Authentication.getUserId()}`
+                  : "not shared my ID"}
+                .
+              </p>
             </div>
-            <p>
-              I have{" "}
-              {this.Authentication.hasSharedId()
-                ? `shared my ID, and my user_id is ${this.Authentication.getUserId()}`
-                : "not shared my ID"}
-              .
-            </p>
             <button onClick={this.toggleTrain}>Toggle Train</button>
             <button onClick={this.lengthenTrain}>Lengthen Train</button>
-            <HypeTrain
-              show={this.state.hypeTrain}
-              count={this.state.hypeTrainLength}
-            />
+            <div className="footer">
+              <div>
+                <HypeTrain
+                  show={this.state.hypeTrain}
+                  count={this.state.hypeTrainLength}
+                />
+              </div>
+              <div>
+                <ArrivalText count={this.state.hypeTrainLength} />
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -162,7 +174,7 @@ function HypeTrain(props) {
   console.log(props);
   return (
     <div>
-      {depths.map(i => trainPart(i)).reverse()}
+      {depths.map(i => trainBody(i)).reverse()}
       {trainHead()}
     </div>
   );
@@ -171,25 +183,30 @@ function HypeTrain(props) {
 function trainHead() {
   return (
     <img
-      src="img/monkaS.jpg"
-      width="40"
-      height="40"
+      src={IMG_PATH}
+      width="10%"
+      height="10%"
       z-index="0"
-      style={{marginLeft:"-5px"}}
+      style={{ marginLeft: "-5px" }}
       key={`train-0`}
     />
   );
 }
 
-function trainPart(depth) {
+function trainBody(depth) {
   return (
     <img
-      src="img/monkaS.jpg"
-      width="20"
-      height="20"
+      src={IMG_PATH}
+      width="5%"
+      height="5%"
       z-index={-depth}
-      style={{marginLeft:"-5px"}}
+      style={{ marginLeft: "-5px" }}
       key={`train-${depth}`}
     />
   );
+}
+
+function ArrivalText(props) {
+  if (props.count !== 20) return null;
+  return <p style={{ textAlign: "center" }}>WE MADE IT!!!</p>;
 }
