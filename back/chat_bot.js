@@ -36,25 +36,31 @@ client.on('connected', function(address, port) {
 
 // responds to messages
 client.on('chat', function(channel, user, message, self) {
-    /*
-    if(message === "!twitch") {
-        client.action(targetChannel, "twitch.tv/kyoushiiiro");
-    }
-    else {
-        client.action(targetChannel, user['display-name'] + " is awesome!");
-    }
-    */
+    if(hypeTrainOn) {
+        contains_phrase = parseMsgForPhrase(message);
+        if(contains_phrase) {
+            if (!hypeTrainPassengers.includes(user['user-id'])) {
+                hypeTrainPassengers.push(user['user-id']);
+            }
+            //TODO
+            // talk to database to add exp to user
 
-    if(hypeTrainOn && message == phrase) {
-        if (!hypeTrainPassengers.includes(user['user-id'])) {
-            hypeTrainPassengers.push(user['user-id']);
+            client.action(targetChannel, phrase)
+
+            curr_emote = (curr_emote + 1) % test_emotes.length;
+            phrase = test_emotes[curr_emote];
         }
-        //TODO
-        // talk to database to add exp to user
-
-        client.action(targetChannel, phrase)
-
-        curr_emote = (curr_emote + 1) % test_emotes.length;
-        phrase = test_emotes[curr_emote];
     }
 });
+
+function parseMsgForPhrase(msg) {
+    var msg_arr = msg.split(" ");
+    var num_words = msg_arr.length;
+    
+    for(let i=0; i<num_words; i++) {
+        if (msg_arr[i] == phrase) {
+            return true;
+        }
+    }
+    return false
+}
