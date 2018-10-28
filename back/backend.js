@@ -3,11 +3,10 @@ const Hapi = require("hapi");
 const path = require("path");
 const request = require("request");
 const config = require("config");
-const mongoose = require("mongoose");
 
 const Viewer = require("./models/Viewer");
 const jwtInitialiser = require("./jwt.js");
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 // Configuration
 const MONGO_USER = config.get("Database.user");
 const MONGO_PASSWORD = config.get("Database.password");
@@ -17,8 +16,9 @@ const SECRET = Buffer.from(config.get("twitch.secret"), "base64");
 const DBurl = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@ds143683.mlab.com:43683/twitchcon`;
 const STRINGS = require("./const.js");
 
+const localCache = {};
 const JWT = jwtInitialiser(USER_ID, SECRET);
-mongoose.connect(DBurl);
+const dbContext = require("./db.js")(DBurl);
 
 const server = new Hapi.Server({
   host: "localhost",
@@ -35,6 +35,22 @@ const server = new Hapi.Server({
   }
 });
 
+function lengthenTrainTrigger(channelId) {
+  return sendPubSubMsg(
+    {
+      message: "lengthenHypeTrain",
+      targets: ["broadcast"]
+    },
+    channelId
+  );
+}
+
+const tmi = require("./chat_bot.js")({
+  dbContext,
+  localCache,
+  triggers: { lengthenTrainTrigger }
+});
+
 function userQueryHandler(req) {
   const payload = JWT.verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
@@ -48,9 +64,10 @@ function userQueryHandler(req) {
 
 function hypeHandler(req) {
   if (req.payload.action === "start") {
+    localCache.train[req.payload.channelId].emote = req.payload.emote || 0;
     return sendPubSubMsg(
       {
-        message: "StartHypeTrain",
+        message: "startHypeTrain",
         targets: ["broadcast"]
       },
       req.payload.channelId
@@ -58,14 +75,36 @@ function hypeHandler(req) {
   }
 
   if (req.payload.action === "stop") {
+    localCache.train[req.payload.channelId] = {
+      emote: null,
+      passengers: [],
+      count: 0,
+      trainLength: 0
+    };
     return sendPubSubMsg(
       {
-        message: "StartHypeTrain",
+        message: "stopHypeTrain",
         targets: ["broadcast"]
       },
       req.payload.channelId
     );
   }
+
+  if (req.payload.action === "lengthen") {
+    return sendPubSubMsg(
+      {
+        message: "lengthenHypeTrain",
+        targets: ["broadcast"]
+      },
+      req.payload.channelId
+    );
+  }
+}
+
+function hypeGetHandler(req) {
+  return localCache.train[req.params.channelId].passengers.some(
+    i => i === req.params.userId
+  );
 }
 
 function sendPubSubMsg(msg, channelId) {
@@ -75,7 +114,7 @@ function sendPubSubMsg(msg, channelId) {
     "Content-Type": "application/json",
     Authorization: JWT.makeServerChannelToken(channelId)
   };
-  console.log(headers.Authorization)
+  console.log(headers.Authorization);
   // Create the POST body for the Twitch API request.
   const mergedMsg = Object.assign(
     {},
@@ -119,7 +158,7 @@ function getSecrets() {
     Authorization: JWT.makeServerToken()
   };
 
-  console.log(headers.Authorization)
+  console.log(headers.Authorization);
 
   // Send the broadcast request to the Twitch API.
   const API_HOST = "api.twitch.tv";
@@ -171,6 +210,12 @@ function getSecrets() {
     method: "GET",
     path: "/secrets",
     handler: getSecrets
+  });
+
+  server.route({
+    method: "GET",
+    path: "/hype/{channelId}/{userId}",
+    handler: hypeGetHandler
   });
 
   // Start the server.
