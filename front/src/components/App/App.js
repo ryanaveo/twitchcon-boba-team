@@ -59,6 +59,7 @@ export default class App extends React.Component {
         this.twitch.rig.log(
           `New PubSub message!\n${target}\n${contentType}\n${body}`
         );
+        console.log(`New PubSub message!\n${target}\n${contentType}\n${body}`);
         // now that you've got a listener, do something with the result...
         switch (body) {
           case "startHypeTrain":
@@ -71,14 +72,10 @@ export default class App extends React.Component {
               hypeTrain: false,
               hypeTrainLength: 0
             }));
-          case "LengthenTrain":
-            return this.setState(state => ({
-              hypeTrainLength: hypeTrainLength + 1
-            }));
+          case "lengthenHypeTrain":
+            return this.lengthenTrain();
           case "incrementExp":
-            return this.setState(state => ({
-              experienceLevel: experienceLevel + 1
-            }));
+            return this.incrementExp();
         }
         // do something...
       });
@@ -134,21 +131,16 @@ export default class App extends React.Component {
           <div
             className={this.state.theme === "light" ? "App-light" : "App-dark"}
           >
-          <div className="nono"></div>
-          <button onClick={this.incrementExp}>Increment Experience</button>
-          <div className="header">
-            <div>
-              <ExperienceLevel
-                show={this.state.experienceLevel}
-              />
-              <Rank
-                show={this.state.experienceLevel}
-              />
+            <div className="nono" />
+            <div className="header">
+              <div>
+                <ExperienceLevel show={this.state.experienceLevel} />
+                <Rank show={this.state.experienceLevel} />
+              </div>
+              <div>
+                <ArrivalText count={this.state.hypeTrainLength} />
+              </div>
             </div>
-            <div>
-              <ArrivalText count={this.state.hypeTrainLength} />
-            </div>
-          </div>
             <div className="main">
               <p>My token is: {this.Authentication.state.token}</p>
               <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
@@ -169,18 +161,17 @@ export default class App extends React.Component {
                   : "not shared my ID"}
                 .
               </p>
+              <button onClick={this.incrementExp}>Increment Experience</button>
+              <button onClick={this.toggleTrain}>Toggle Train</button>
+              <button onClick={this.lengthenTrain}>Lengthen Train</button>
             </div>
-            <button onClick={this.toggleTrain}>Toggle Train</button>
-            <button onClick={this.lengthenTrain}>Lengthen Train</button>
+
             <div className="footer">
               <div>
                 <HypeTrain
                   show={this.state.hypeTrain}
                   count={this.state.hypeTrainLength}
                 />
-              </div>
-              <div>
-                <ArrivalText count={this.state.hypeTrainLength} />
               </div>
             </div>
           </div>
@@ -198,7 +189,6 @@ function HypeTrain(props) {
   for (var i = 1; i < props.count; i++) {
     depths.push(i);
   }
-  console.log(props);
   return (
     <div>
       {depths.map(i => trainBody(i)).reverse()}
@@ -239,33 +229,19 @@ function ArrivalText(props) {
 }
 
 function ExperienceLevel(props) {
-  console.log(props);
-  return (
-    <div>
-      Experience: {props.show}
-    </div>
-  );
+  return <div>Experience: {props.show}</div>;
 }
 
+const ranks = [
+  ["Noob", 0],
+  ["Experienced", 10],
+  ["Master", 20],
+  ["Challenger", 30],
+  ["Legend", 40]
+].reverse();
 function Rank(props) {
-  console.log(props);
-  var rank = "Noob";
+  const currentExp = props.show;
+  const rankIndex = ranks.findIndex(i => i[1] <= currentExp);
 
-  if (props.show >= 10 && props.show < 20) {
-    rank = "Novice";
-  } else if (props.show >= 20 && props.show < 30) {
-    rank = "Experienced";
-  } else if (props.show >= 30 && props.show < 40) {
-    rank = "Master";
-  } else if (props.show >= 40 && props.show < 50) {
-    rank = "Challenger";
-  } else if (props.show >= 50) {
-    rank = "Legend";
-  }
-
-  return (
-    <div>
-      Rank: {rank}
-    </div>
-  );
+  return <div>Rank: {ranks[rankIndex][0]}</div>;
 }
