@@ -4,6 +4,7 @@ import Authentication from "../../util/Authentication/Authentication";
 import "./App.css";
 
 const IMG_PATH = "img/monkaS.png";
+const IMAGES = ["img/monkaS.png", "img/fed.png", "img/kappa.png"];
 
 export default class App extends React.Component {
   constructor(props) {
@@ -19,11 +20,13 @@ export default class App extends React.Component {
       hypeTrain: false,
       hypeTrainLength: 0,
       experienceLevel: 0,
+      imageIndex: 0
       trophies: []
     };
     this.incrementExp = this.incrementExp.bind(this);
     this.toggleTrain = this.toggleTrain.bind(this);
     this.lengthenTrain = this.lengthenTrain.bind(this);
+    this.nextImage = this.nextImage.bind(this);
     this.assignMostTroll = this.assignMostTroll.bind(this);
     this.assignJebaited = this.assignJebaited.bind(this);
     this.assignPogChamp = this.assignPogChamp.bind(this);
@@ -83,6 +86,8 @@ export default class App extends React.Component {
             return this.lengthenTrain();
           case "incrementExp":
             return this.incrementExp();
+          case "nextImage":
+            return this.nextImage();
           case "assignTrophies":
             return this.setState(state => ({
 
@@ -140,8 +145,15 @@ export default class App extends React.Component {
     });
   }
 
-  assignMostTroll() {
+  nextImage() {
+    this.setState(state => {
+      return {
+        imageIndex = state.imageIndex == IMAGES.length ? 0 : state.imageIndex + 1; 
+      };
+    });
+  }
 
+  assignMostTroll() {
     this.setState(state => {
       if (state.trophies.includes("Most Troll")) {
         return { trophies: state.trophies };
@@ -238,6 +250,7 @@ export default class App extends React.Component {
               <button onClick={this.incrementExp}>Increment Experience</button>
               <button onClick={this.toggleTrain}>Toggle Train</button>
               <button onClick={this.lengthenTrain}>Lengthen Train</button>
+              <button onClick={this.nextImage}>New Emote</button>
               <button onClick={this.incrementExp}>Increment Experience</button>
               <button onClick={this.assignMostTroll}>Assign Most Troll</button>
               <button onClick={this.assignJebaited}>Assign Jebaited</button>
@@ -250,6 +263,7 @@ export default class App extends React.Component {
                 <HypeTrain
                   show={this.state.hypeTrain}
                   count={this.state.hypeTrainLength}
+                  imageIndex={this.state.imageIndex}
                 />
               </div>
             </div>
@@ -262,7 +276,7 @@ export default class App extends React.Component {
   }
 }
 
-function HypeTrain(props) {
+function HypeTrain(props, imageIndex) {
   if (!props.show) return null;
   var depths = [];
   for (var i = 1; i < props.count; i++) {
@@ -270,16 +284,16 @@ function HypeTrain(props) {
   }
   return (
     <div>
-      {depths.map(i => trainBody(i)).reverse()}
-      {trainHead()}
+      {depths.map(i => trainBody(i, imageIndex)).reverse()}
+      {trainHead(imageIndex)}
     </div>
   );
 }
 
-function trainHead() {
+function trainHead(imageIndex) {
   return (
     <img
-      src={IMG_PATH}
+      src={IMAGES[imageIndex]}
       width="10%"
       height="10%"
       z-index="0"
@@ -289,10 +303,10 @@ function trainHead() {
   );
 }
 
-function trainBody(depth) {
+function trainBody(depth, imageIndex) {
   return (
     <img
-      src={IMG_PATH}
+      src={IMAGES[imageIndex]}
       width="5%"
       height="5%"
       z-index={-depth}

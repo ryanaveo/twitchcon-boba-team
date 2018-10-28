@@ -108,6 +108,16 @@ function hypeHandler(req) {
       req.payload.channelId
     );
   }
+
+  if(req.payload.action === "nextImage") {
+    return sendPubSubMsg(
+      {
+        message: "nextImage",
+        targets: ["broadcast"]
+      }
+      req.payload.channelId
+    );
+  }
 }
 
 function hypeGetHandler(req) {
