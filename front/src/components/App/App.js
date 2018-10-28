@@ -246,26 +246,8 @@ export default class App extends React.Component {
             <div>
               <ArrivalText count={this.state.hypeTrainLength} />
             </div>
+            </div>
             <div className="main">
-              <p>My token is: {this.Authentication.state.token}</p>
-              <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
-              <div>
-                {this.Authentication.isModerator() ? (
-                  <p>
-                    I am currently a mod, and heres a special mod button{" "}
-                    <input value="mod button" type="button" />
-                  </p>
-                ) : (
-                  "I am currently not a mod."
-                )}
-              </div>
-              <p>
-                I have{" "}
-                {this.Authentication.hasSharedId()
-                  ? `shared my ID, and my user_id is ${this.Authentication.getUserId()}`
-                  : "not shared my ID"}
-                .
-              </p>
               <button onClick={this.incrementExp}>Increment Experience</button>
               <button onClick={this.toggleTrain}>Toggle Train</button>
               <button onClick={this.lengthenTrain}>Lengthen Train</button>
@@ -277,7 +259,6 @@ export default class App extends React.Component {
               <button onClick={this.assignBestViewer}>Assign BestViewer</button>
               <button onClick={this.assignResidentSleeper}>Assign ResidentSleeper</button>
             </div>
-
             <div className="footer">
               <div>
                 <HypeTrain
