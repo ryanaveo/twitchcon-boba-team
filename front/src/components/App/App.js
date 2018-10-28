@@ -4,7 +4,7 @@ import Authentication from "../../util/Authentication/Authentication";
 import "./App.css";
 
 const IMG_PATH = "img/monkaS.png";
-const IMAGES = ["img/monkaS.png", "img/fed.png", "img/kappa.png"];
+const IMAGES = ["img/monkaS.png", "img/fed.png", "img/kappa.png", "img/foki.png", "img/scarra.png"];
 
 export default class App extends React.Component {
   constructor(props) {
@@ -149,7 +149,7 @@ export default class App extends React.Component {
     this.setState(state => {
       return {
         imageIndex: 
-          state.imageIndex === IMAGES.length ? 0 : state.imageIndex + 1
+          state.imageIndex === IMAGES.length-11111111111 ? 0 : state.imageIndex + 1
       };
     });
   }
