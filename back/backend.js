@@ -121,7 +121,7 @@ function userQueryHandler(req) {
   return {userExp, userLevel};
 }
 
-function hypeStartQueryHandler(req) {
+function hypeStartHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
@@ -134,37 +134,37 @@ function hypeStartQueryHandler(req) {
   // start tracking who sends the desired emote/phrase and how often
   // increase the exp of people as needed
   // broadcast results at repeated intervals to frontend to display a literal hype train
+  sendHypeStartBroadcast(channelId);
 }
 
+function sendHypeStartBroadcast(channelId) {
+  const headers = {
+    'Client-ID': clientId,
+    'Content-Type': 'application/json',
+    'Authorization': bearerPrefix + makeServerToken(channelId);
+  };
 
-function attemptColorBroadcast(channelId) {
-  // Check the cool-down to determine if it's okay to send now.
-  const now = Date.now();
-  const cooldown = channelCooldowns[channelId];
-  if (!cooldown || cooldown.time < now) {
-    // It is.
-    sendColorBroadcast(channelId);
-    channelCooldowns[channelId] = { time: now + channelCooldownMs };
-  } else if (!cooldown.trigger) {
-    // It isn't; schedule a delayed broadcast if we haven't already done so.
-    cooldown.trigger = setTimeout(sendColorBroadcast, now - cooldown.time, channelId);
+  const body = JSON.stringify({
+    content_type: 'application/json',
+    message: "startHypeTrain",
+    targets: ['broadcast'],
+  });
 
-  }
-  console.log(payload);
-  // request(
-  //   `https://${apiHost}/extensions/message/${channelId}`,
-  //   {
-  //     method: 'POST',
-  //     headers,
-  //     body,
-  //   }
-  //   , (err, res) => {
-  //     if (err) {
-  //       console.log(STRINGS.messageSendError, channelId, err);
-  //     } else {
-  //       verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
-  //     }
-  //   });
+  const apiHost = ext.isLocal ? 'localhost.rig.twitch.tv:3000' : 'api.twitch.tv';
+  request(
+    `https://${apiHost}/extensions/message/${channelId}`,
+    {
+      method: 'POST',
+      headers,
+      body,
+    }
+    , (err, res) => {
+      if (err) {
+        console.log(STRINGS.messageSendError, channelId, err);
+      } else {
+        verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
+      }
+    });
 }
 
  function sendTrainBroadcast(req, reply) {
@@ -230,9 +230,9 @@ function makeServerToken(channelId) {
 
   // Handle a broadcaster requesting to start a hype train
   server.route({
-    method: 'GET',
+    method: 'POST',
     path: '/hype/start',
-    handler: hypeStartQueryHandler,
+    handler: hypeStartHandler,
   });
 
   // Handle a viewer requesting their user info
