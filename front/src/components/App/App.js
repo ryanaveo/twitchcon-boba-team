@@ -148,8 +148,8 @@ export default class App extends React.Component {
   nextImage() {
     this.setState(state => {
       return {
-        imageIndex: 
-          state.imageIndex == IMAGES.length ? 0 : state.imageIndex + 1; 
+        imageIndex:
+          state.imageIndex == IMAGES.length ? 0 : state.imageIndex + 1
       };
     });
   }
