@@ -167,7 +167,53 @@ function sendHypeStartBroadcast(channelId) {
     });
 }
 
- function sendTrainBroadcast(req, reply) {
+function hypeStopHandler(req) {
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(!hypeTrainOn) {
+      return;
+  }
+  hypeTrainOn = false;
+
+  // set the desired emote/phrase
+  // start tracking who sends the desired emote/phrase and how often
+  // increase the exp of people as needed
+  // broadcast results at repeated intervals to frontend to display a literal hype train
+  sendHypeStopBroadcast(channelId);
+}
+
+function sendHypeStopBroadcast(channelId) {
+  const headers = {
+    'Client-ID': clientId,
+    'Content-Type': 'application/json',
+    'Authorization': bearerPrefix + makeServerToken(channelId);
+  };
+
+  const body = JSON.stringify({
+    content_type: 'application/json',
+    message: "stopHypeTrain",
+    targets: ['broadcast'],
+  });
+
+  const apiHost = ext.isLocal ? 'localhost.rig.twitch.tv:3000' : 'api.twitch.tv';
+  request(
+    `https://${apiHost}/extensions/message/${channelId}`,
+    {
+      method: 'POST',
+      headers,
+      body,
+    }
+    , (err, res) => {
+      if (err) {
+        console.log(STRINGS.messageSendError, channelId, err);
+      } else {
+        verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
+      }
+    });
+}
+
+function sendTrainBroadcast(req, reply) {
   // Set the HTTP headers required by the Twitch API.
   const headers = {
     'Client-ID': clientId,
@@ -215,18 +261,19 @@ function makeServerToken(channelId) {
 
 (async () => {
   server.route({
-    method: 'POST',
-    path: '/train',
-    handler: sendTrainBroadcast
-  });
-
-  server.route({
     method:'GET',
     path:'/',
     handler:()=>{
       console.log('hello')
     }
   })
+
+  // Handle a broadcaster requesting to stop hype train
+  server.route({
+    method: 'POST',
+    path: '/hype/start',
+    handler: hypeStopHandler,
+  });
 
   // Handle a broadcaster requesting to start a hype train
   server.route({
@@ -240,6 +287,12 @@ function makeServerToken(channelId) {
     method: 'GET',
     path: '/user/query',
     handler: userQueryHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/train',
+    handler: sendTrainBroadcast
   });
 
   // Start the server.
