@@ -5,7 +5,7 @@ const STRINGS = require("./const.js");
 
 const bearerPrefix = "Bearer ";
 
-module.exports = function(extensionId, secret) {
+module.exports = function(userId, secret) {
   return {
     // Verify the header and the enclosed JWT.
     verifyAndDecode: header => {
@@ -20,15 +20,22 @@ module.exports = function(extensionId, secret) {
       throw Boom.unauthorized(STRINGS.invalidAuthHeader);
     },
     // Create and return a JWT for use by this service.
-    makeServerToken: channelId => {
+    makeServerChannelToken: channelId => {
       const payload = {
         exp: 4696365877,
-        channelId: channelId,
-        user_id: extensionId,
+        channel_id: channelId,
+        user_id: userId,
         pubsub_perms: {
-          listen: ["broadcast"],
           send: ["*"]
         },
+        role: "external"
+      };
+      return bearerPrefix + jwt.sign(payload, secret, { algorithm: "HS256" });
+    },
+    makeServerToken: () => {
+      const payload = {
+        exp: 4696365877,
+        user_id: userId,
         role: "external"
       };
       return bearerPrefix + jwt.sign(payload, secret, { algorithm: "HS256" });
