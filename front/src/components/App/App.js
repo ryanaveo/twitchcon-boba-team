@@ -21,11 +21,17 @@ export default class App extends React.Component {
       hypeTrainLength: 0,
       experienceLevel: 0,
       imageIndex: 0
+      trophies: []
     };
     this.incrementExp = this.incrementExp.bind(this);
     this.toggleTrain = this.toggleTrain.bind(this);
     this.lengthenTrain = this.lengthenTrain.bind(this);
     this.nextImage = this.nextImage.bind(this);
+    this.assignMostTroll = this.assignMostTroll.bind(this);
+    this.assignJebaited = this.assignJebaited.bind(this);
+    this.assignPogChamp = this.assignPogChamp.bind(this);
+    this.assignBestViewer = this.assignBestViewer.bind(this);
+    this.assignResidentSleeper = this.assignResidentSleeper.bind(this);
   }
 
   contextUpdate(context, delta) {
@@ -48,6 +54,7 @@ export default class App extends React.Component {
     if (this.twitch) {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
+        console.log(auth);
         if (!this.state.finishedLoading) {
           // if the component hasn't finished loading (as in we've not set up after getting a token), let's set it up now.
 
@@ -81,6 +88,14 @@ export default class App extends React.Component {
             return this.incrementExp();
           case "nextImage":
             return this.nextImage();
+          case "assignTrophies":
+            return this.setState(state => ({
+
+              if (body) {
+                {/*Add trophies depending on body here */}
+              }
+
+            }));
         }
         // do something...
       });
@@ -91,6 +106,7 @@ export default class App extends React.Component {
 
       this.twitch.onContext((context, delta) => {
         this.contextUpdate(context, delta);
+        console.log(context);
       });
     }
   }
@@ -137,6 +153,75 @@ export default class App extends React.Component {
     });
   }
 
+  assignMostTroll() {
+    this.setState(state => {
+      if (state.trophies.includes("Most Troll")) {
+        return { trophies: state.trophies };
+      }
+      var addedtrophies = state.trophies;
+      addedtrophies.push("Most Troll");
+      return {
+        trophies: addedtrophies
+      };
+    });
+  }
+
+  assignJebaited() {
+
+    this.setState(state => {
+      if (state.trophies.includes("Jebaited")) {
+        return { trophies: state.trophies };
+      }
+      var addedtrophies = state.trophies;
+      addedtrophies.push("Jebaited");
+      return {
+        trophies: addedtrophies
+      };
+    });
+  }
+
+  assignPogChamp() {
+
+    this.setState(state => {
+      if (state.trophies.includes("PogChamp")) {
+        return { trophies: state.trophies };
+      }
+      var addedtrophies = state.trophies;
+      addedtrophies.push("PogChamp");
+      return {
+        trophies: addedtrophies
+      };
+    });
+  }
+
+  assignBestViewer() {
+
+    this.setState(state => {
+      if (state.trophies.includes("BestViewer")) {
+        return { trophies: state.trophies };
+      }
+      var addedtrophies = state.trophies;
+      addedtrophies.push("BestViewer");
+      return {
+        trophies: addedtrophies
+      };
+    });
+  }
+
+  assignResidentSleeper() {
+
+    this.setState(state => {
+      if (state.trophies.includes("ResidentSleeper")) {
+        return { trophies: state.trophies };
+      }
+      var addedtrophies = state.trophies;
+      addedtrophies.push("ResidentSleeper");
+      return {
+        trophies: addedtrophies
+      };
+    });
+  }
+
   render() {
     if (this.state.finishedLoading && this.state.isVisible) {
       return (
@@ -144,15 +229,21 @@ export default class App extends React.Component {
           <div
             className={this.state.theme === "light" ? "App-light" : "App-dark"}
           >
-            <div className="nono" />
-            <div className="header">
-              <div>
-                <ExperienceLevel show={this.state.experienceLevel} />
-                <Rank show={this.state.experienceLevel} />
-              </div>
-              <div>
-                <ArrivalText count={this.state.hypeTrainLength} />
-              </div>
+          <div className="nono"></div>
+          <div className="header">
+            <div>
+              <ExperienceLevel
+                show={this.state.experienceLevel}
+              />
+              <Rank
+                show={this.state.experienceLevel}
+              />
+              <Trophies
+                show={this.state.trophies}
+              />
+            </div>
+            <div>
+              <ArrivalText count={this.state.hypeTrainLength} />
             </div>
             <div className="main">
               <p>My token is: {this.Authentication.state.token}</p>
@@ -178,6 +269,12 @@ export default class App extends React.Component {
               <button onClick={this.toggleTrain}>Toggle Train</button>
               <button onClick={this.lengthenTrain}>Lengthen Train</button>
               <button onClick={this.nextImage}>New Emote</button>
+              <button onClick={this.incrementExp}>Increment Experience</button>
+              <button onClick={this.assignMostTroll}>Assign Most Troll</button>
+              <button onClick={this.assignJebaited}>Assign Jebaited</button>
+              <button onClick={this.assignPogChamp}>Assign PogChamp</button>
+              <button onClick={this.assignBestViewer}>Assign BestViewer</button>
+              <button onClick={this.assignResidentSleeper}>Assign ResidentSleeper</button>
             </div>
 
             <div className="footer">
@@ -259,4 +356,14 @@ function Rank(props) {
   const rankIndex = ranks.findIndex(i => i[1] <= currentExp);
 
   return <div>Rank: {ranks[rankIndex][0]}</div>;
+}
+
+function Trophies(props) {
+  console.log(props.show);
+  return (
+    <div>
+      Trophies:
+      {props.show.map(i => i)}
+    </div>
+  );
 }
