@@ -1,4 +1,9 @@
 var tmi = require('tmi.js');
+var hypeTrainPassengers = [];
+var hypeTrainOn = true;
+var phrase = "test_phrase";
+
+var targetChannel = "kyoushiiiro";
 
 // default settings, don't see a reason to change these
 var options = {
@@ -15,7 +20,7 @@ var options = {
         password: "oauth:aaaaqyhnqu93o3mo194p89wd27ahft"
     },
     // the channel the bot will troll
-    channels: ["kyoushiiiro"]
+    channels: [targetChannel]
 };
 
 // creates and connects the bot
@@ -23,15 +28,23 @@ var client = new tmi.client(options);
 client.connect();
 
 client.on('connected', function(address, port) {
-    client.action("kyoushiiiro", "Hello, it's boba bot!");
+    client.action(targetChannel, "Hello, it's boba bot!");
 });
 
 // responds to messages
 client.on('chat', function(channel, user, message, self) {
+    /*
     if(message === "!twitch") {
-        client.action("kyoushiiiro", "twitch.tv/kyoushiiiro");
+        client.action(targetChannel, "twitch.tv/kyoushiiiro");
     }
     else {
-        client.action("kyoushiiiro", user['display-name'] + " is awesome!");
+        client.action(targetChannel, user['display-name'] + " is awesome!");
+    }
+    */
+
+    if(hypeTrainOn && message == phrase) {
+        // talk to database to add exp to user
+        hypeTrainPassengers.push(user['user-id']);
+        client.action(targetChannel, hypeTrainPassengers);
     }
 });

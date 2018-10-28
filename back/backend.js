@@ -35,18 +35,16 @@ const verboseLogging = true;
 const verboseLog = verboseLogging ? console.log.bind(console) : () => { };
 
 // Service state variables
-const initialColor = color('#6441A4');      // super important; bleedPurple, etc.
 const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
 const userCooldownMs = 1000;                // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
 const channelCooldownMs = 1000;             // maximum broadcast rate per channel
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
 
-const colorWheelRotation = 30;
-const channelColors = {};
 const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
+var hypeTrainOn = false
 let last_updated = Date.now()
 
 function missingOnline(name, variable) {
@@ -68,8 +66,7 @@ const STRINGS = {
   messageSendError: 'Error sending message to channel %s: %s',
   pubsubResponse: 'Message to c:%s returned %s',
   cyclingColor: 'Cycling color for c:%s on behalf of u:%s',
-  colorBroadcast: 'Broadcasting color %s for c:%s',
-  sendColor: 'Sending color %s to c:%s',
+  startHypeTrainBroadcast: 'Broadcasting %s for c:%s',
   sendUserInfo: 'Sending {exp: %d, level: %d} to c:%s',
   cooldown: 'Please wait before clicking again',
   invalidAuthHeader: 'Invalid authorization header',
@@ -141,34 +138,6 @@ function verifyAndDecode(header) {
   throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
-/*
-function colorCycleHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-
-  // Store the color for the channel.
-  let currentColor = channelColors[channelId] || initialColor;
-
-  // Bot abuse prevention:  don't allow a user to spam the button.
-  if (userIsInCooldown(opaqueUserId)) {
-    throw Boom.tooManyRequests(STRINGS.cooldown);
-  }
-
-  // Rotate the color as if on a color wheel.
-  verboseLog(STRINGS.cyclingColor, channelId, opaqueUserId);
-  currentColor = color(currentColor).rotate(colorWheelRotation).hex();
-
-  // Save the new color for the channel.
-  channelColors[channelId] = currentColor;
-
-  // Broadcast the color change to all other extension instances on this channel.
-  attemptColorBroadcast(channelId);
-
-  return currentColor;
-}
-*/
-
 function userQueryHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
@@ -180,70 +149,115 @@ function userQueryHandler(req) {
   return {userExp, userLevel};
 }
 
-function hypeStartQueryHandler(req) {
+function hypeStartHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
+  // return if already started hype train
   if(hypeTrainOn) {
       return;
   }
-  hypeTrainOn = true
+  hypeTrainOn = true;
 
+  //TODO
   // set the desired emote/phrase
-  // start tracking who sends the desired emote/phrase and how often
-  // increase the exp of people as needed
-  // broadcast results at repeated intervals to frontend to display a literal hype train
+  phrase = "test_phrase";
+  // start tracking who sends the desired emote/phrase and how often (in chatbot)
+
+  // increase the exp of people as needed (through database)
+
+  // broadcast the start of the hype train
+  sendStartHypeTrainBroadcast(channelId);
+
+  // start to broadcast updates to hype train at repeated intervals to frontend to display a literal hype train
 }
 
+function sendStartHypeTrainBroadcast(channelId) {
+    // Set the HTTP headers require by the Twitch API.
+    const headers = {
+        'Client-ID': clientId,
+        'Content-Type': 'application/json',
+        'Authorization': bearerPrefix + makeServerToken(channelId),
+    };
 
-function attemptColorBroadcast(channelId) {
-  // Check the cool-down to determine if it's okay to send now.
-  const now = Date.now();
-  const cooldown = channelCooldowns[channelId];
-  if (!cooldown || cooldown.time < now) {
-    // It is.
-    sendColorBroadcast(channelId);
-    channelCooldowns[channelId] = { time: now + channelCooldownMs };
-  } else if (!cooldown.trigger) {
-    // It isn't; schedule a delayed broadcast if we haven't already done so.
-    cooldown.trigger = setTimeout(sendColorBroadcast, now - cooldown.time, channelId);
-  }
-}
-
-function sendColorBroadcast(channelId) {
-  // Set the HTTP headers required by the Twitch API.
-  const headers = {
-    'Client-ID': clientId,
-    'Content-Type': 'application/json',
-    'Authorization': bearerPrefix + makeServerToken(channelId),
-  };
-
-  // Create the POST body for the Twitch API request.
-  const currentColor = color(channelColors[channelId] || initialColor).hex();
-  const body = JSON.stringify({
-    content_type: 'application/json',
-    message: currentColor,
-    targets: ['broadcast'],
-  });
-
-  // Send the broadcast request to the Twitch API.
-  verboseLog(STRINGS.colorBroadcast, currentColor, channelId);
-  const apiHost = ext.isLocal ? 'localhost.rig.twitch.tv:3000' : 'api.twitch.tv';
-  request(
-    `https://${apiHost}/extensions/message/${channelId}`,
-    {
-      method: 'POST',
-      headers,
-      body,
-    }
-    , (err, res) => {
-      if (err) {
-        console.log(STRINGS.messageSendError, channelId, err);
-      } else {
-        verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
-      }
+    // Create the POST body for the Twitch API request.
+    const body = JSON.stringify({
+        content_type: 'application/json',
+        message: "startHypeTrain",
+        targets: ['broadcast'],
     });
+
+    // Send the broadcast request to the Twitch API.
+    verboseLog(STRINGS.startHypeTrainBroadcast, "startHypeTrain", channelId);
+    const apiHost = ext.isLocal ? 'localhost.rig.twitch.tv:3000' : 'api.twitch.tv';
+    request(
+        `https://${apiHost}/extensions/message/${channelId}`,
+        {
+            method: 'POST',
+            headers,
+            body,
+        }
+        , (err, res) => {
+            if (err) {
+                console.log(STRINGS.messageSendError, channelId, err);
+            } else {
+                verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
+            }
+        });
 }
+
+function hypeStopHandler(req) {
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(!hypeTrainOn) {
+    return;
+  }
+  hypeTrainOn = false;
+  
+  //TODO
+  // stop tracking who sends the desired phrase (in chatbot)
+  
+  // update exp for final time (through database)
+
+  // broadcast the end of the hype train
+  sendStopHypeTrainBroadcast(channelId);
+}
+
+function sendStopHypeTrainBroadcast(channelId) {
+    // Set the HTTP headers require by the Twitch API.
+    const headers = {
+        'Client-ID': clientId,
+        'Content-Type': 'application/json',
+        'Authorization': bearerPrefix + makeServerToken(channelId),
+    };
+
+    // Create the POST body for the Twitch API request.
+    const body = JSON.stringify({
+        content_type: 'application/json',
+        message: "stopHypeTrain",
+        targets: ['broadcast'],
+    });
+
+    // Send the broadcast request to the Twitch API.
+    verboseLog(STRINGS.startHypeTrainBroadcast, "stopHypeTrain", channelId);
+    const apiHost = ext.isLocal ? 'localhost.rig.twitch.tv:3000' : 'api.twitch.tv';
+    request(
+        `https://${apiHost}/extensions/message/${channelId}`,
+        {
+            method: 'POST',
+            headers,
+            body,
+        }
+        , (err, res) => {
+            if (err) {
+                console.log(STRINGS.messageSendError, channelId, err);
+            } else {
+                verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
+            }
+        });
+}
+
 
 // Create and return a JWT for use by this service.
 function makeServerToken(channelId) {
@@ -259,32 +273,18 @@ function makeServerToken(channelId) {
   return jwt.sign(payload, secret, { algorithm: 'HS256' });
 }
 
-function userIsInCooldown(opaqueUserId) {
-  // Check if the user is in cool-down.
-  const cooldown = userCooldowns[opaqueUserId];
-  const now = Date.now();
-  if (cooldown && cooldown > now) {
-    return true;
-  }
-
-  // Voting extensions must also track per-user votes to prevent skew.
-  userCooldowns[opaqueUserId] = now + userCooldownMs;
-  return false;
-}
-
 (async () => {
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/color/cycle',
-    handler: colorCycleHandler,
-  });
-
   // Handle a broadcaster requesting to start a hype train
   server.route({
-    method: 'GET',
+    method: 'POST',
     path: '/hype/start',
-    handler: hypeStartQueryHandler,
+    handler: hypeStartHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/hype/stop',
+    handler: hypeStopHandler,
   });
 
   // Handle a viewer requesting their user info
