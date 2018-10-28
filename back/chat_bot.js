@@ -1,5 +1,5 @@
 var tmi = require("tmi.js");
-var test_emotes = ["monkaS","Keepo", "Kappa", "PogChamp", "4Head", "LUL"];
+var test_emotes = ["monkaS", "Keepo", "Kappa", "PogChamp", "4Head", "LUL"];
 var curr_emote = 0;
 
 var phrase = test_emotes[curr_emote];
@@ -26,10 +26,12 @@ var options = {
 
 function parseMsgForPhrase(msg, phrase) {
   var msg_arr = msg.split(" ");
-  return msg_arr.some(word => phrase === word);
+  console.log(msg_arr);
+  return msg_arr.some(word => word.includes(phrase));
 }
 
 module.exports = function({ dbContext, localCache, triggers }) {
+  dbContext.getAll();
   // creates and connects the bot
   var client = new tmi.client(options);
   client.connect();
@@ -39,33 +41,32 @@ module.exports = function({ dbContext, localCache, triggers }) {
   });
 
   // responds to messages
-  client.on("chat", function(channel, user, message, self) {
-    if (!localCache.train[channel]) {
-      localCache.train[channel] = {
+  client.on("chat", function(channelName, user, message, self) {
+    if (self) return;
+    const channelId = user["room-id"];
+    if (!localCache.train[channelId]) {
+      console.log("Setup train cache " + channelId);
+      localCache.train[channelId] = {
         emote: null,
         passengers: [],
         count: 0,
         trainLength: 0
       };
     }
-    if (localCache.train[channel].emote !== null) {
-      contains_phrase = parseMsgForPhrase(test_emotes[emote]);
+    if (localCache.train[channelId].emote !== null) {
+      contains_phrase = parseMsgForPhrase(message, test_emotes[localCache.train[channelId].emote]);
       if (contains_phrase) {
-        localCache.train[channel].count++;
-        if (localCache.train[channel].count / 20 > trainLength) {
-          triggers.lengthenTrainTrigger(channel);
-          localCache.train[channel].trainLength++;
+        console.log("Phrase found!");
+        localCache.train[channelId].count++;
+        if (localCache.train[channelId].count / 20 >localCache.train[channelId].trainLength) {
+          triggers.lengthenTrainTrigger(channelId);
+          localCache.train[channelId].trainLength++;
         }
-        passengers = localCache.train[channel].passengers;
+        passengers = localCache.train[channelId].passengers;
         if (!passengers.includes(user["user-id"])) {
           passengers.push(user["user-id"]);
           dbContext.gainExp(user["user-id"]);
         }
-
-        client.action(targetChannel, phrase);
-
-        curr_emote = (curr_emote + 1) % test_emotes.length;
-        phrase = test_emotes[curr_emote];
       }
     }
   });

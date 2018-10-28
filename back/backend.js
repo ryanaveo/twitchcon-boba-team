@@ -16,7 +16,16 @@ const SECRET = Buffer.from(config.get("twitch.secret"), "base64");
 const DBurl = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@ds143683.mlab.com:43683/twitchcon`;
 const STRINGS = require("./const.js");
 
-const localCache = {};
+const localCache = {
+  train: {
+    "48428141": {
+      emote: 0,
+      passengers: [],
+      count: 0,
+      trainLength: 0
+    }
+  }
+};
 const JWT = jwtInitialiser(USER_ID, SECRET);
 const dbContext = require("./db.js")(DBurl);
 
