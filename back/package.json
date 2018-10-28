@@ -2,10 +2,12 @@
   "name": "Boba-back",
   "version": "1.0.0",
   "description": "BobaStory backend",
-  "main": "index.js",
+  "main": "backend.js",
   "license": "MIT",
   "dependencies": {
     "boom": "^7.2.0",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
     "color": "^3.0.0",
     "commander": "^2.15.0",
     "config": "^2.0.1",
