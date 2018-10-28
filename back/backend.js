@@ -46,27 +46,29 @@ function userQueryHandler(req) {
   return { userExp, userLevel };
 }
 
-function hypeStopHandler(req) {
-  return sendPubSubMsg(
-    {
-      message: "StopHypeTrain",
-      targets: ["broadcast"]
-    },
-    req.payload.channelId
-  );
+function hypeHandler(req) {
+  if (req.payload.action === "start") {
+    return sendPubSubMsg(
+      {
+        message: "StartHypeTrain",
+        targets: ["broadcast"]
+      },
+      req.payload.channelId
+    );
+  }
+
+  if (req.payload.action === "stop") {
+    return sendPubSubMsg(
+      {
+        message: "StartHypeTrain",
+        targets: ["broadcast"]
+      },
+      req.payload.channelId
+    );
+  }
 }
 
-function hypeStartHandler(req) {
-  return sendPubSubMsg(
-    {
-      message: "StartHypeTrain",
-      targets: ["broadcast"]
-    },
-    req.payload.channelId
-  );
-}
-
-function sendPubSubMsg(body, channelId) {
+function sendPubSubMsg(msg, channelId) {
   // Set the HTTP headers required by the Twitch API.
   const headers = {
     "Client-ID": CLIENT_ID,
@@ -74,17 +76,17 @@ function sendPubSubMsg(body, channelId) {
     Authorization: JWT.makeServerToken(channelId)
   };
   // Create the POST body for the Twitch API request.
-  const mergedBody = Object.assign(
+  const mergedMsg = Object.assign(
     {},
     {
       content_type: "application/json",
       message: "Hello",
       targets: ["broadcast"]
     },
-    body
+    msg
   );
 
-  const body = JSON.stringify(mergedBody);
+  const body = JSON.stringify(mergedMsg);
 
   // Send the broadcast request to the Twitch API.
   const API_HOST = "api.twitch.tv";
@@ -119,18 +121,11 @@ function sendPubSubMsg(body, channelId) {
     }
   });
 
-  // Handle a broadcaster requesting to stop hype train
+  // Handle a broadcaster requesting to manage hype train
   server.route({
     method: "POST",
-    path: "/hype/start",
-    handler: hypeStopHandler
-  });
-
-  // Handle a broadcaster requesting to start a hype train
-  server.route({
-    method: "POST",
-    path: "/hype/start",
-    handler: hypeStartHandler
+    path: "/hype",
+    handler: hypeHandler
   });
 
   // Handle a viewer requesting their user info
