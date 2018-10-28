@@ -20,7 +20,7 @@ export default class App extends React.Component {
       hypeTrain: false,
       hypeTrainLength: 0,
       experienceLevel: 0,
-      imageIndex: 0
+      imageIndex: 0,
       trophies: []
     };
     this.incrementExp = this.incrementExp.bind(this);
@@ -148,7 +148,8 @@ export default class App extends React.Component {
   nextImage() {
     this.setState(state => {
       return {
-        imageIndex = state.imageIndex == IMAGES.length ? 0 : state.imageIndex + 1; 
+        imageIndex: 
+          state.imageIndex == IMAGES.length ? 0 : state.imageIndex + 1; 
       };
     });
   }
