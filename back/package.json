@@ -6,15 +6,19 @@
   "license": "MIT",
   "dependencies": {
     "boom": "^7.2.0",
-    "commander": "^2.19.0",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "color": "^3.0.0",
+    "commander": "^2.15.0",
     "config": "^2.0.1",
     "express": "^4.16.4",
-    "fs": "0.0.1-security",
-    "hapi": "^17.6.0",
-    "jsonwebtoken": "^8.3.0",
+    "hapi": "^17.2.2",
+    "inert": "^5.1.0",
+    "jsonwebtoken": "^8.2.0",
     "mongoose": "^5.3.7",
     "node": "^11.0.0",
-    "path": "^0.12.7",
-    "request": "^2.88.0"
+    "request": "^2.85.0",
+    "selfsigned": "^1.10.2",
+    "tmi.js": "^1.2.1"
   }
 }

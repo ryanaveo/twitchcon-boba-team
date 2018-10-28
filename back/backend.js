@@ -48,6 +48,7 @@ const STRINGS = {
   cyclingColor: 'Cycling color for c:%s on behalf of u:%s',
   colorBroadcast: 'Broadcasting color %s for c:%s',
   sendColor: 'Sending color %s to c:%s',
+  sendUserInfo: 'Sending {exp: %d, level: %d} to c:%s',
   cooldown: 'Please wait before clicking again',
   invalidAuthHeader: 'Invalid authorization header',
   invalidJwt: 'Invalid JWT',
@@ -81,6 +82,7 @@ function verifyAndDecode(header) {
   throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
+/*
 function colorCycleHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
@@ -106,15 +108,47 @@ function colorCycleHandler(req) {
 
   return currentColor;
 }
+*/
 
-function trainHandler(req) {
-  let payload;
-  console.log('here')
-  try{
-    payload = verifyAndDecode(req.headers.authorization);
-  }catch(e){
-    console.log(e)
-    return e
+function userQueryHandler(req) {
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  const userExp = getExpFromDatabase(opaqueUserId);
+  const userLevel = getLevelFromDatabase(opaqueUserId);
+
+  verboseLog(STRINGS.sendUserInfo, userExp, userLevel, opaqueUserId);
+  return {userExp, userLevel};
+}
+
+function hypeStartQueryHandler(req) {
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(hypeTrainOn) {
+      return;
+  }
+  hypeTrainOn = true
+
+  // set the desired emote/phrase
+  // start tracking who sends the desired emote/phrase and how often
+  // increase the exp of people as needed
+  // broadcast results at repeated intervals to frontend to display a literal hype train
+}
+
+
+function attemptColorBroadcast(channelId) {
+  // Check the cool-down to determine if it's okay to send now.
+  const now = Date.now();
+  const cooldown = channelCooldowns[channelId];
+  if (!cooldown || cooldown.time < now) {
+    // It is.
+    sendColorBroadcast(channelId);
+    channelCooldowns[channelId] = { time: now + channelCooldownMs };
+  } else if (!cooldown.trigger) {
+    // It isn't; schedule a delayed broadcast if we haven't already done so.
+    cooldown.trigger = setTimeout(sendColorBroadcast, now - cooldown.time, channelId);
+
   }
   console.log(payload);
   // request(
@@ -193,6 +227,21 @@ function makeServerToken(channelId) {
       console.log('hello')
     }
   })
+
+  // Handle a broadcaster requesting to start a hype train
+  server.route({
+    method: 'GET',
+    path: '/hype/start',
+    handler: hypeStartQueryHandler,
+  });
+
+  // Handle a viewer requesting their user info
+  server.route({
+    method: 'GET',
+    path: '/user/query',
+    handler: userQueryHandler,
+  });
+
   // Start the server.
   await server.start();
   console.log(STRINGS.serverStarted, server.info.uri);
