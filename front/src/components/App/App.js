@@ -156,11 +156,29 @@ export default class App extends React.Component {
 function HypeTrain(props) {
   if (!props.show) return null;
   var depths = [];
-  for (var i = 0; i < props.count; i++) {
+  for (var i = 1; i < props.count; i++) {
     depths.push(i);
   }
   console.log(props);
-  return <div>{depths.map(i => trainPart(i))}</div>;
+  return (
+    <div>
+      {depths.map(i => trainPart(i)).reverse()}
+      {trainHead()}
+    </div>
+  );
+}
+
+function trainHead() {
+  return (
+    <img
+      src="img/monkaS.jpg"
+      width="40"
+      height="40"
+      z-index="0"
+      style={{marginLeft:"-5px"}}
+      key={`train-0`}
+    />
+  );
 }
 
 function trainPart(depth) {
@@ -169,7 +187,8 @@ function trainPart(depth) {
       src="img/monkaS.jpg"
       width="20"
       height="20"
-      z-index={depth}
+      z-index={-depth}
+      style={{marginLeft:"-5px"}}
       key={`train-${depth}`}
     />
   );
