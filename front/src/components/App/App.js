@@ -17,9 +17,10 @@ export default class App extends React.Component {
       theme: "light",
       isVisible: true,
       hypeTrain: false,
-      hypeTrainLength: 0
+      hypeTrainLength: 0,
+      experienceLevel: 0
     };
-
+    this.incrementExp = this.incrementExp.bind(this);
     this.toggleTrain = this.toggleTrain.bind(this);
     this.lengthenTrain = this.lengthenTrain.bind(this);
   }
@@ -74,6 +75,10 @@ export default class App extends React.Component {
             return this.setState(state => ({
               hypeTrainLength: hypeTrainLength + 1
             }));
+          case "incrementExp":
+            return this.setState(state => ({
+              experienceLevel: experienceLevel + 1
+            }));
         }
         // do something...
       });
@@ -114,6 +119,14 @@ export default class App extends React.Component {
     });
   }
 
+  incrementExp() {
+    this.setState(state => {
+      return {
+        experienceLevel: state.experienceLevel + 1
+      };
+    });
+  }
+
   render() {
     if (this.state.finishedLoading && this.state.isVisible) {
       return (
@@ -121,14 +134,28 @@ export default class App extends React.Component {
           <div
             className={this.state.theme === "light" ? "App-light" : "App-dark"}
           >
-            <div className="header" />
+          <div className="nono"></div>
+          <button onClick={this.incrementExp}>Increment Experience</button>
+          <div className="header">
+            <div>
+              <ExperienceLevel
+                show={this.state.experienceLevel}
+              />
+              <Rank
+                show={this.state.experienceLevel}
+              />
+            </div>
+            <div>
+              <ArrivalText count={this.state.hypeTrainLength} />
+            </div>
+          </div>
             <div className="main">
               <p>My token is: {this.Authentication.state.token}</p>
               <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
               <div>
                 {this.Authentication.isModerator() ? (
                   <p>
-                    I am currently a mod, and here's a special mod button{" "}
+                    I am currently a mod, and heres a special mod button{" "}
                     <input value="mod button" type="button" />
                   </p>
                 ) : (
@@ -209,4 +236,36 @@ function trainBody(depth) {
 function ArrivalText(props) {
   if (props.count !== 20) return null;
   return <p style={{ textAlign: "center" }}>WE MADE IT!!!</p>;
+}
+
+function ExperienceLevel(props) {
+  console.log(props);
+  return (
+    <div>
+      Experience: {props.show}
+    </div>
+  );
+}
+
+function Rank(props) {
+  console.log(props);
+  var rank = "Noob";
+
+  if (props.show >= 10 && props.show < 20) {
+    rank = "Novice";
+  } else if (props.show >= 20 && props.show < 30) {
+    rank = "Experienced";
+  } else if (props.show >= 30 && props.show < 40) {
+    rank = "Master";
+  } else if (props.show >= 40 && props.show < 50) {
+    rank = "Challenger";
+  } else if (props.show >= 50) {
+    rank = "Legend";
+  }
+
+  return (
+    <div>
+      Rank: {rank}
+    </div>
+  );
 }
