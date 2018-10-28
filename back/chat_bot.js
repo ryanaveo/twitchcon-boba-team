@@ -43,9 +43,11 @@ client.on('chat', function(channel, user, message, self) {
     */
 
     if(hypeTrainOn && message == phrase) {
+        if !hypeTrainPassengers.includes(user['user-id']) {
+            hypeTrainPassengers.push(user['user-id']);
+        }
         //TODO
         // talk to database to add exp to user
-        hypeTrainPassengers.push(user['user-id']);
         client.action(targetChannel, hypeTrainPassengers);
     }
 });
