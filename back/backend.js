@@ -46,25 +46,51 @@ function userQueryHandler(req) {
   return { userExp, userLevel };
 }
 
-function sendTrainBroadcast(req, reply) {
+function hypeStopHandler(req) {
+  return sendPubSubMsg(
+    {
+      message: "StopHypeTrain",
+      targets: ["broadcast"]
+    },
+    req.payload.channelId
+  );
+}
+
+function hypeStartHandler(req) {
+  return sendPubSubMsg(
+    {
+      message: "StartHypeTrain",
+      targets: ["broadcast"]
+    },
+    req.payload.channelId
+  );
+}
+
+function sendPubSubMsg(body, channelId) {
   // Set the HTTP headers required by the Twitch API.
   const headers = {
     "Client-ID": CLIENT_ID,
     "Content-Type": "application/json",
-    Authorization: JWT.makeServerToken(req.payload.channelId)
+    Authorization: JWT.makeServerToken(channelId)
   };
   // Create the POST body for the Twitch API request.
-  const body = JSON.stringify({
-    content_type: "application/json",
-    message: "Hello",
-    targets: ["broadcast"]
-  });
+  const mergedBody = Object.assign(
+    {},
+    {
+      content_type: "application/json",
+      message: "Hello",
+      targets: ["broadcast"]
+    },
+    body
+  );
+
+  const body = JSON.stringify(mergedBody);
 
   // Send the broadcast request to the Twitch API.
-  const apiHost = "api.twitch.tv";
+  const API_HOST = "api.twitch.tv";
   return new Promise((resolve, reject) => {
     request(
-      `https://${apiHost}/extensions/message/${req.payload.channelId}`,
+      `https://${API_HOST}/extensions/message/${channelId}`,
       {
         method: "POST",
         headers,
@@ -72,7 +98,7 @@ function sendTrainBroadcast(req, reply) {
       },
       (err, res) => {
         if (err) {
-          console.log(STRINGS.messageSendError, req.payload.channelId, err);
+          console.log(STRINGS.messageSendError, channelId, err);
           reject("ERR");
         }
         console.log("SUCCESS");
@@ -83,20 +109,29 @@ function sendTrainBroadcast(req, reply) {
 }
 
 (async () => {
-  server.route({
-    method: "POST",
-    path: "/train",
-    handler: sendTrainBroadcast
-  });
-
+  // Basic test route
   server.route({
     method: "GET",
     path: "/",
-    handler: (req, res) => {
+    handler: () => {
       console.log("hello");
       return "OK";
     }
-  })
+  });
+
+  // Handle a broadcaster requesting to stop hype train
+  server.route({
+    method: "POST",
+    path: "/hype/start",
+    handler: hypeStopHandler
+  });
+
+  // Handle a broadcaster requesting to start a hype train
+  server.route({
+    method: "POST",
+    path: "/hype/start",
+    handler: hypeStartHandler
+  });
 
   // Handle a viewer requesting their user info
   server.route({
