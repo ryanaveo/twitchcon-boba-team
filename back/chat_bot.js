@@ -28,7 +28,7 @@ var client = new tmi.client(options);
 client.connect();
 
 client.on('connected', function(address, port) {
-    client.action(targetChannel, "Hello, it's boba bot!");
+    client.action(targetChannel, "Hello, it's boba bot! I have connected!");
 });
 
 // responds to messages
@@ -43,6 +43,7 @@ client.on('chat', function(channel, user, message, self) {
     */
 
     if(hypeTrainOn && message == phrase) {
+        //TODO
         // talk to database to add exp to user
         hypeTrainPassengers.push(user['user-id']);
         client.action(targetChannel, hypeTrainPassengers);
