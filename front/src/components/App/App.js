@@ -90,11 +90,11 @@ export default class App extends React.Component {
             return this.nextImage();
           case "assignTrophies":
             return this.setState(state => ({
-
-              if (body) {
-                {/*Add trophies depending on body here */}
+              if(body) {
+                {
+                  /*Add trophies depending on body here */
+                }
               }
-
             }));
         }
         // do something...
@@ -148,8 +148,8 @@ export default class App extends React.Component {
   nextImage() {
     this.setState(state => {
       return {
-        imageIndex: 
-          state.imageIndex === IMAGES.length ? 0 : state.imageIndex + 1
+        imageIndex:
+          state.imageIndex === IMAGES.length - 1 ? 0 : state.imageIndex + 1
       };
     });
   }
@@ -157,7 +157,7 @@ export default class App extends React.Component {
   assignMostTroll() {
     this.setState(state => {
       if (state.trophies.includes("Most Troll")) {
-        return { trophies: state.trophies };
+        return {};
       }
       var addedtrophies = state.trophies;
       addedtrophies.push("Most Troll");
@@ -168,10 +168,9 @@ export default class App extends React.Component {
   }
 
   assignJebaited() {
-
     this.setState(state => {
       if (state.trophies.includes("Jebaited")) {
-        return { trophies: state.trophies };
+        return {};
       }
       var addedtrophies = state.trophies;
       addedtrophies.push("Jebaited");
@@ -182,10 +181,9 @@ export default class App extends React.Component {
   }
 
   assignPogChamp() {
-
     this.setState(state => {
       if (state.trophies.includes("PogChamp")) {
-        return { trophies: state.trophies };
+        return {};
       }
       var addedtrophies = state.trophies;
       addedtrophies.push("PogChamp");
@@ -196,7 +194,6 @@ export default class App extends React.Component {
   }
 
   assignBestViewer() {
-
     this.setState(state => {
       if (state.trophies.includes("BestViewer")) {
         return { trophies: state.trophies };
@@ -210,7 +207,6 @@ export default class App extends React.Component {
   }
 
   assignResidentSleeper() {
-
     this.setState(state => {
       if (state.trophies.includes("ResidentSleeper")) {
         return { trophies: state.trophies };
@@ -230,22 +226,16 @@ export default class App extends React.Component {
           <div
             className={this.state.theme === "light" ? "App-light" : "App-dark"}
           >
-          <div className="nono"></div>
-          <div className="header">
-            <div>
-              <ExperienceLevel
-                show={this.state.experienceLevel}
-              />
-              <Rank
-                show={this.state.experienceLevel}
-              />
-              <Trophies
-                show={this.state.trophies}
-              />
-            </div>
-            <div>
-              <ArrivalText count={this.state.hypeTrainLength} />
-            </div>
+            <div className="nono" />
+            <div className="header">
+              <div>
+                <ExperienceLevel show={this.state.experienceLevel} />
+                <Rank show={this.state.experienceLevel} />
+                <Trophies show={this.state.trophies} />
+              </div>
+              <div>
+                <ArrivalText count={this.state.hypeTrainLength} />
+              </div>
             </div>
             <div className="main">
               <button onClick={this.incrementExp}>Increment Experience</button>
@@ -257,7 +247,9 @@ export default class App extends React.Component {
               <button onClick={this.assignJebaited}>Assign Jebaited</button>
               <button onClick={this.assignPogChamp}>Assign PogChamp</button>
               <button onClick={this.assignBestViewer}>Assign BestViewer</button>
-              <button onClick={this.assignResidentSleeper}>Assign ResidentSleeper</button>
+              <button onClick={this.assignResidentSleeper}>
+                Assign ResidentSleeper
+              </button>
             </div>
             <div className="footer">
               <div>
@@ -277,7 +269,7 @@ export default class App extends React.Component {
   }
 }
 
-function HypeTrain(props, imageIndex) {
+function HypeTrain(props) {
   if (!props.show) return null;
   var depths = [];
   for (var i = 1; i < props.count; i++) {
@@ -285,8 +277,8 @@ function HypeTrain(props, imageIndex) {
   }
   return (
     <div>
-      {depths.map(i => trainBody(i, imageIndex)).reverse()}
-      {trainHead(imageIndex)}
+      {depths.map(i => trainBody(i, props.imageIndex)).reverse()}
+      {trainHead(props.imageIndex)}
     </div>
   );
 }
@@ -341,7 +333,6 @@ function Rank(props) {
 }
 
 function Trophies(props) {
-  console.log(props.show);
   return (
     <div>
       Trophies:
